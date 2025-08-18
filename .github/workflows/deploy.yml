@@ -115,10 +115,10 @@ jobs:
           script: |
             cd /home/telo
             echo "Starting application..."
-            #nohup java -jar demo-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            nohup java -jar demo-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
             
             # Hoặc nếu dùng systemd:
-             sudo systemctl start my-spring-app
+            # sudo systemctl start my-spring-app
             
             echo "Verifying application..."
             sleep 10
