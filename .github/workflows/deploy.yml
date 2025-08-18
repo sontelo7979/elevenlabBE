@@ -36,6 +36,23 @@ jobs:
         with:
           name: app-jar
 
+      - name: Stop existing application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            echo "Stopping existing application..."
+            sudo systemctl stop my-spring-app || echo "No systemctl service found"
+            PID=$(ps aux | grep "[d]emo-0.0.1-SNAPSHOT.jar" | awk '{print $2}')
+            if [ ! -z "$PID" ]; then
+              echo "Killing process $PID"
+              kill $PID
+              sleep 5
+            fi
+
       - name: Check if port is free
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -45,7 +62,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             if ss -tuln | grep :8082; then
-              echo "Port 8082 is in use, deployment aborted"
+              echo "Port 8082 is still in use after stopping app"
               exit 1
             fi
 
@@ -75,6 +92,7 @@ jobs:
           script: |
             if [ -f /home/telo/demo-0.0.1-SNAPSHOT.jar ]; then
               mv /home/telo/demo-0.0.1-SNAPSHOT.jar /home/telo/demo-0.0.1-SNAPSHOT.jar.bak
+              echo "Backup created"
             fi
 
       - name: Copy JAR to VPS
@@ -96,6 +114,18 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             cd /home/telo
-            sudo systemctl stop my-spring-app || true
-            sudo systemctl start my-spring-app
+            echo "Starting application..."
+            #nohup java -jar demo-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            
+            # Hoặc nếu dùng systemd:
+             sudo systemctl start my-spring-app
+            
+            echo "Verifying application..."
+            sleep 10
+            if ss -tuln | grep :8082; then
+              echo "Application started successfully on port 8082"
+            else
+              echo "Application failed to start"
+              exit 1
+            fi
             echo "Deployment completed"
