@@ -61,6 +61,9 @@ public class AuthService {
                 .username(userDetails.getUsername())
                 .email(userDetails.getEmail())
                 .roles(roles)
+                .startDate(userDetails.getStartDate())
+                .endDate(userDetails.getEndDate())
+                .isActive(userDetails.getIsActive())
                 .build();
     }
 

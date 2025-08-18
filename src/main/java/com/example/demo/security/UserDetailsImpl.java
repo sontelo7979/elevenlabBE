@@ -1,10 +1,12 @@
 package com.example.demo.security;
 
 import com.example.demo.model.User;
+import jakarta.persistence.Column;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,14 +18,21 @@ public class UserDetailsImpl implements UserDetails {
     private String username;
     private String email;
     private String password;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private Boolean isActive;
     private Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(Long id, String username, String email, String password,
+                           LocalDateTime startDate, LocalDateTime endDate, Boolean isActive,
                            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.isActive = isActive;
         this.authorities = authorities;
     }
 
@@ -37,6 +46,9 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
+                user.getStartDate(),
+                user.getEndDate(),
+                user.getIsActive(),
                 authorities);
     }
 
@@ -81,5 +93,17 @@ public class UserDetailsImpl implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public LocalDateTime getStartDate() {
+        return startDate;
+    }
+
+    public LocalDateTime getEndDate() {
+        return endDate;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
     }
 }

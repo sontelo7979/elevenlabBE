@@ -2,6 +2,7 @@ package com.example.demo.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -12,9 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 public class JwtResponse {
     private String token;
-    private String type = "Bearer";
     private Long id;
     private String username;
     private String email;
     private List<String> roles;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private Boolean isActive;
 }
