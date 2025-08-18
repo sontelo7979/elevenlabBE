@@ -87,7 +87,7 @@ public class AuthService {
         Set<Role> roles = new HashSet<>();
 
         if (intRoles == null) {
-            // Mặc định là staff (2)
+            // Default to staff (2)
             Role staffRole = roleRepository.findByName(ERole.ROLE_STAFF)
                     .orElseThrow(() -> new RuntimeException("Error: Role not found"));
             roles.add(staffRole);
@@ -100,10 +100,19 @@ public class AuthService {
                         roles.add(adminRole);
                         break;
                     case 2: // Staff
-                    default: // Mặc định là staff nếu giá trị không hợp lệ
                         Role staffRole = roleRepository.findByName(ERole.ROLE_STAFF)
                                 .orElseThrow(() -> new RuntimeException("Error: Role not found"));
                         roles.add(staffRole);
+                        break;
+                    case 3: // Customer
+                        Role customerRole = roleRepository.findByName(ERole.ROLE_CUSTOMER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role not found"));
+                        roles.add(customerRole);
+                        break;
+                    default: // Default to staff if invalid value
+                        Role defaultRole = roleRepository.findByName(ERole.ROLE_CUSTOMER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role not found"));
+                        roles.add(defaultRole);
                 }
             });
         }
