@@ -19,6 +19,7 @@ public class UserDetailsImpl implements UserDetails {
     private String username;
     private String email;
     private String password;
+
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Boolean isActive;

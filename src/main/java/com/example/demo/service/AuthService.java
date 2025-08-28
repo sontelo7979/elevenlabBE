@@ -58,22 +58,26 @@ public class AuthService {
         String jwt = jwtUtils.generateJwtToken(authentication);
         // Lấy thông tin user
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        // Lấy device ID từ client
-        String deviceId = getClientDeviceId();
-        // Kiểm tra thiết bị đã đăng ký
-        if (!deviceRegistrationService.isDeviceRegisteredForUser(userDetails.getId(), deviceId)) {
-            // Nếu user chưa có thiết bị đăng ký, thực hiện đăng ký
-            if (userDetails.getRegisteredDeviceId() == null) {
-                deviceRegistrationService.registerDeviceForUser(userDetails.getId(), deviceId);
-            } else {
-                throw new RuntimeException("Tài khoản này đã được đăng ký với thiết bị khác. " +
-                        "Vui lòng sử dụng thiết bị đã đăng ký hoặc liên hệ quản trị viên.");
-            }
-        }
+
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
+        // Chỉ kiểm tra thiết bị đăng ký cho ROLE_CUSTOMER
+        if (roles.contains("ROLE_CUSTOMER")) {
+            // Lấy device ID từ client
+            String deviceId = getClientDeviceId();
 
+            // Kiểm tra thiết bị đã đăng ký
+            if (!deviceRegistrationService.isDeviceRegisteredForUser(userDetails.getId(), deviceId)) {
+                // Nếu user chưa có thiết bị đăng ký, thực hiện đăng ký
+                if (userDetails.getRegisteredDeviceId() == null) {
+                    deviceRegistrationService.registerDeviceForUser(userDetails.getId(), deviceId);
+                } else {
+                    throw new RuntimeException("Tài khoản này đã được đăng ký với thiết bị khác. " +
+                            "Vui lòng sử dụng thiết bị đã đăng ký hoặc liên hệ quản trị viên.");
+                }
+            }
+        }
         return JwtResponse.builder()
                 .token(jwt)
                 .id(userDetails.getId())
