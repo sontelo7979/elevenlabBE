@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import jakarta.persistence.Column;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -20,4 +21,6 @@ public class JwtResponse {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Boolean isActive;
+    private String registeredDeviceId;
+    private LocalDateTime deviceRegisteredAt;
 }

@@ -10,6 +10,7 @@ import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtils;
 import com.example.demo.security.UserDetailsImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,17 +31,23 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final DeviceRegistrationService deviceRegistrationService;
+    private final HttpServletRequest httpServletRequest;
 
     public AuthService(AuthenticationManager authenticationManager,
             UserRepository userRepository,
             RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
-            JwtUtils jwtUtils) {
+            JwtUtils jwtUtils,
+                       DeviceRegistrationService deviceRegistrationService,
+                       HttpServletRequest httpServletRequest) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
+        this.deviceRegistrationService = deviceRegistrationService;
+        this.httpServletRequest = httpServletRequest;
     }
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
@@ -49,8 +56,20 @@ public class AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
-
+        // Lấy thông tin user
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        // Lấy device ID từ client
+        String deviceId = getClientDeviceId();
+        // Kiểm tra thiết bị đã đăng ký
+        if (!deviceRegistrationService.isDeviceRegisteredForUser(userDetails.getId(), deviceId)) {
+            // Nếu user chưa có thiết bị đăng ký, thực hiện đăng ký
+            if (userDetails.getRegisteredDeviceId() == null) {
+                deviceRegistrationService.registerDeviceForUser(userDetails.getId(), deviceId);
+            } else {
+                throw new RuntimeException("Tài khoản này đã được đăng ký với thiết bị khác. " +
+                        "Vui lòng sử dụng thiết bị đã đăng ký hoặc liên hệ quản trị viên.");
+            }
+        }
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
@@ -64,9 +83,18 @@ public class AuthService {
                 .startDate(userDetails.getStartDate())
                 .endDate(userDetails.getEndDate())
                 .isActive(userDetails.getIsActive())
+                .registeredDeviceId(userDetails.getRegisteredDeviceId())
+                .deviceRegisteredAt(userDetails.getDeviceRegisteredAt())
                 .build();
     }
-
+    // Lấy device ID từ client
+    private String getClientDeviceId() {
+        String deviceId = httpServletRequest.getHeader("X-Device-Id");
+        if (deviceId == null || deviceId.isEmpty()) {
+            throw new RuntimeException("Thiết bị không được xác định. Vui lòng cung cấp Device ID.");
+        }
+        return deviceId;
+    }
     public String registerUser(RegisterRequest registerRequest) {
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new RuntimeException("Error: Username is already taken!");

@@ -42,6 +42,12 @@ public class User {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
+    @Column(name = "registered_device_id", unique = true)
+    private String registeredDeviceId;
+
+    @Column(name = "device_registered_at")
+    private LocalDateTime deviceRegisteredAt;
+
     // Phương thức kiểm tra tài khoản còn hiệu lực
     public boolean isAccountValid() {
         if (!this.roles.stream().anyMatch(role -> role.getName() == ERole.ROLE_CUSTOMER)) {
