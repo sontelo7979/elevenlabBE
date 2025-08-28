@@ -2,6 +2,7 @@ package com.example.demo.security;
 
 import com.example.demo.model.User;
 import jakarta.persistence.Column;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,10 +22,13 @@ public class UserDetailsImpl implements UserDetails {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Boolean isActive;
+    private String registeredDeviceId;
+    private LocalDateTime deviceRegisteredAt;
     private Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(Long id, String username, String email, String password,
                            LocalDateTime startDate, LocalDateTime endDate, Boolean isActive,
+                           String registeredDeviceId, LocalDateTime deviceRegisteredAt,
                            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
@@ -34,6 +38,8 @@ public class UserDetailsImpl implements UserDetails {
         this.endDate = endDate;
         this.isActive = isActive;
         this.authorities = authorities;
+        this.registeredDeviceId = registeredDeviceId;
+        this.deviceRegisteredAt = deviceRegisteredAt;
     }
 
     public static UserDetailsImpl build(User user) {
@@ -49,6 +55,8 @@ public class UserDetailsImpl implements UserDetails {
                 user.getStartDate(),
                 user.getEndDate(),
                 user.getIsActive(),
+                user.getRegisteredDeviceId(),
+                user.getDeviceRegisteredAt(),
                 authorities);
     }
 
@@ -106,4 +114,14 @@ public class UserDetailsImpl implements UserDetails {
     public Boolean getIsActive() {
         return isActive;
     }
+
+    public String getRegisteredDeviceId() {
+        return registeredDeviceId;
+    }
+
+    public LocalDateTime getDeviceRegisteredAt() {
+        return deviceRegisteredAt;
+    }
+
+
 }
