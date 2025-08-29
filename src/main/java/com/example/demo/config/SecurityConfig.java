@@ -30,7 +30,8 @@ public class SecurityConfig {
             "/api/test/**",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/actuator/health"
+            "/actuator/health",
+            "/updates/**"
     };
 
     private final UserDetailsServiceImpl userDetailsService;
