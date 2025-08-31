@@ -42,7 +42,7 @@ public class User {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Column(name = "registered_device_id", unique = false)
+    @Column(name = "registered_device_id")
     private String registeredDeviceId;
 
     @Column(name = "device_registered_at")
