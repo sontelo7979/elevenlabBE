@@ -3,10 +3,10 @@ package com.example.demo.service;
 import com.example.demo.dto.JwtResponse;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
-import com.example.demo.model.ERole;
-import com.example.demo.model.Role;
-import com.example.demo.model.User;
+import com.example.demo.model.*;
+import com.example.demo.repository.PermissionRepository;
 import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.UserPermissionRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtils;
 import com.example.demo.security.UserDetailsImpl;
@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,25 +30,35 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
+    private final UserPermissionRepository userPermissionRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final DeviceRegistrationService deviceRegistrationService;
     private final HttpServletRequest httpServletRequest;
+    private final UserPermissionService userPermissionService; // Thêm service mới
+
 
     public AuthService(AuthenticationManager authenticationManager,
             UserRepository userRepository,
             RoleRepository roleRepository,
+                       PermissionRepository permissionRepository,
+                       UserPermissionRepository userPermissionRepository,
             PasswordEncoder passwordEncoder,
             JwtUtils jwtUtils,
                        DeviceRegistrationService deviceRegistrationService,
-                       HttpServletRequest httpServletRequest) {
+                       HttpServletRequest httpServletRequest,
+                       UserPermissionService userPermissionService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
+        this.userPermissionRepository = userPermissionRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
         this.deviceRegistrationService = deviceRegistrationService;
         this.httpServletRequest = httpServletRequest;
+        this.userPermissionService = userPermissionService;
     }
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
@@ -61,6 +72,9 @@ public class AuthService {
 
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        List<String> permissions = userPermissionService.getActivePermissions(userDetails.getId()).stream()
+                .map(up -> up.getPermission().getName().getCode())
                 .collect(Collectors.toList());
         // Chỉ kiểm tra thiết bị đăng ký cho ROLE_CUSTOMER
         if (roles.contains("ROLE_CUSTOMER")) {
@@ -84,6 +98,7 @@ public class AuthService {
                 .username(userDetails.getUsername())
                 .email(userDetails.getEmail())
                 .roles(roles)
+                .permissions(permissions) // Thêm permissions vào response
                 .startDate(userDetails.getStartDate())
                 .endDate(userDetails.getEndDate())
                 .isActive(userDetails.getIsActive())
@@ -153,8 +168,34 @@ public class AuthService {
         }
 
         user.setRoles(roles);
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        if (registerRequest.getPermissions() != null && !registerRequest.getPermissions().isEmpty()) {
+            assignPermissionsToUser(savedUser, registerRequest.getPermissions());
+        }
         return "User registered successfully!";
+    }
+    private void assignPermissionsToUser(User user, Set<String> permissionCodes) {
+        permissionCodes.forEach(permissionCode -> {
+            // Chuyển đổi từ String sang EPermission
+            EPermission ePermission;
+            try {
+                ePermission = EPermission.valueOf(permissionCode);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Error: Invalid permission code: " + permissionCode);
+            }
+
+            Permission permission = permissionRepository.findByName(ePermission)
+                    .orElseThrow(() -> new RuntimeException("Error: Permission not found: " + permissionCode));
+
+            UserPermission userPermission = UserPermission.builder()
+                    .user(user)
+                    .permission(permission)
+                    .granted(true)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            userPermissionRepository.save(userPermission);
+        });
     }
 }
 //

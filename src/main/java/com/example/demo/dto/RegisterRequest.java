@@ -15,6 +15,7 @@ public class RegisterRequest {
     private String email;
     private String password;
     private Set<Integer> roles;
+    private Set<String> permissions; // Thêm field permissions
     private LocalDateTime startDate; // Thêm cho CUSTOMER
     private LocalDateTime endDate;   // Thêm cho CUSTOMER
 }

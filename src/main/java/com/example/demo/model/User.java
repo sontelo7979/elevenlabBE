@@ -58,4 +58,9 @@ public class User {
     }
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<UserSubscriptionKey> subscriptionKeys = new HashSet<>();
+
+    // Thêm quan hệ với UserPermission
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<UserPermission> userPermissions = new HashSet<>();
+
 }
