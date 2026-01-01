@@ -10,8 +10,5 @@ public enum EPermission {
     TEXT_TO_VOICE("TEXT_TO_VOICE"),
     VIDEO_DUBBING("VIDEO_DUBBING"),
     MINIMAX_CLONE_VOICE("MINIMAX_CLONE_VOICE");
-
-
-
     private final String code;
 }
