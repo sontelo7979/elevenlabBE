@@ -1,5 +1,5 @@
 {
-  "Version": "3.1.6",
-  "DownloadUrl": "https://api.yt-bintube.com/updates/Bin11labs_3.1.6.zip",
-  "ReleaseNotes": "\n• Fix Auto Rotate Proxy\n• Cải thiện hiệu năng"
+  "Version": "3.1.7",
+  "DownloadUrl": "https://api.yt-bintube.com/updates/Bin11labs_3.1.7.zip",
+  "ReleaseNotes": "\n• Add more extensions\n• Fix Retry"
 }
