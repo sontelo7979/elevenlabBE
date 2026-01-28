@@ -1,5 +1,5 @@
 {
-  "Version": "3.1.7",
-  "DownloadUrl": "https://api.yt-bintube.com/updates/Bin11labs_3.1.7.zip",
-  "ReleaseNotes": "\n• Add more extensions\n• Fix Retry"
+  "Version": "3.1.8",
+  "DownloadUrl": "https://api.yt-bintube.com/updates/Bin11labs_3.1.8.zip",
+  "ReleaseNotes": "\n• Fix Voice Default Errors\n• Fix Retry"
 }
