@@ -121,7 +121,7 @@ jobs:
             # sudo systemctl start my-spring-app
             
             echo "Verifying application..."
-            sleep 10
+            sleep 25
             if ss -tuln | grep :8082; then
               echo "Application started successfully on port 8082"
             else
