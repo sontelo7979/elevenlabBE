@@ -37,8 +37,10 @@ public class JwtUtils {
         claims.put("username", userPrincipal.getUsername());
         claims.put("email", userPrincipal.getEmail());
         claims.put("roles", roles);
-        claims.put("startDate", userPrincipal.getStartDate());
-        claims.put("endDate", userPrincipal.getEndDate());
+        claims.put("startDate", userPrincipal.getStartDate() != null ?
+                userPrincipal.getStartDate().toString() : null);
+        claims.put("endDate", userPrincipal.getEndDate() != null ?
+                userPrincipal.getEndDate().toString() : null);
         claims.put("isActive", userPrincipal.getIsActive());
 
 
