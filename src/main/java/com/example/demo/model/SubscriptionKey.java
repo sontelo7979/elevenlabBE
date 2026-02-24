@@ -45,3 +45,4 @@ public class SubscriptionKey {
     @Column(name = "created_by_user_id")
     private Long createdByUserId;
 }
+//
