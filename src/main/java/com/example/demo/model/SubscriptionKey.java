@@ -29,7 +29,7 @@ public class SubscriptionKey {
     @Column(nullable = false)
     private Duration duration; // Thời gian gia hạn
 
-    @Column(name = "key_type", nullable = false, length = 20)
+    @Column(name = "key_type", length = 20)
     private String keyType; // Dùng String: "1MONTH", "3MONTHS", "6MONTHS", "1YEAR"
 
     @Column(nullable = false)
