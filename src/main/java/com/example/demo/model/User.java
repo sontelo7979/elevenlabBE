@@ -48,13 +48,43 @@ public class User {
     @Column(name = "device_registered_at")
     private LocalDateTime deviceRegisteredAt;
 
+    // Thêm trường để biết CTV nào đã đăng ký tài khoản này
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "registered_by_collaborator_id")
+    private Collaborator registeredByCollaborator;
+
     // Phương thức kiểm tra tài khoản còn hiệu lực
     public boolean isAccountValid() {
-        if (!this.roles.stream().anyMatch(role -> role.getName() == ERole.ROLE_CUSTOMER)) {
+        // Nếu không phải role CUSTOMER thì luôn valid (ADMIN, STAFF)
+        if (this.roles.stream().noneMatch(role -> role.getName() == ERole.ROLE_CUSTOMER)) {
             return true;
         }
+
         LocalDateTime now = LocalDateTime.now();
-        return isActive && !now.isBefore(startDate) && !now.isAfter(endDate);
+
+        // Nếu tài khoản không active -> invalid
+        if (!isActive) {
+            return false;
+        }
+
+        // Xử lý trường hợp startDate và endDate bị null
+        if (startDate == null && endDate == null) {
+            // Nếu cả 2 đều null -> coi như tài khoản vĩnh viễn (valid)
+            return true;
+        }
+
+        if (startDate == null) {
+            // Chỉ có endDate -> kiểm tra không quá endDate
+            return !now.isAfter(endDate);
+        }
+
+        if (endDate == null) {
+            // Chỉ có startDate -> kiểm tra đã qua startDate chưa
+            return !now.isBefore(startDate);
+        }
+
+        // Có cả startDate và endDate -> kiểm tra trong khoảng
+        return !now.isBefore(startDate) && !now.isAfter(endDate);
     }
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<UserSubscriptionKey> subscriptionKeys = new HashSet<>();

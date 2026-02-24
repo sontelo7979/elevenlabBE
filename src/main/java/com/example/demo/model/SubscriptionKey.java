@@ -29,6 +29,9 @@ public class SubscriptionKey {
     @Column(nullable = false)
     private Duration duration; // Thời gian gia hạn
 
+    @Column(name = "key_type", nullable = false, length = 20)
+    private String keyType; // Dùng String: "1MONTH", "3MONTHS", "6MONTHS", "1YEAR"
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -37,4 +40,8 @@ public class SubscriptionKey {
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // Chỉ cần lưu userId của CTV đã tạo key
+    @Column(name = "created_by_user_id")
+    private Long createdByUserId;
 }

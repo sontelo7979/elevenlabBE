@@ -12,6 +12,7 @@ public class UserSubscriptionKey {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // User là khách hàng (người được đăng ký/gia hạn)
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -19,6 +20,10 @@ public class UserSubscriptionKey {
     @ManyToOne
     @JoinColumn(name = "key_id", nullable = false)
     private SubscriptionKey subscriptionKey;
+
+    // Lưu userId của collaborator (người thực hiện đăng ký/gia hạn)
+    @Column(name = "collaborator_user_id")
+    private Long collaboratorUserId;
 
     @Column(nullable = false)
     private LocalDateTime appliedAt = LocalDateTime.now();

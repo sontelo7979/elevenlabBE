@@ -6,12 +6,20 @@ import com.example.demo.model.UserSubscriptionKey;
 import com.example.demo.repository.SubscriptionKeyRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.UserSubscriptionKeyRepository;
+import com.example.demo.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 @Service
@@ -20,7 +28,7 @@ public class SubscriptionService {
     private final UserRepository userRepository;
     private final SubscriptionKeyRepository keyRepository;
     private final UserSubscriptionKeyRepository userKeyRepository;
-
+    private final JwtUtils jwtUtils;
     @Transactional
     public void applySubscriptionKey(Long userId, String keyCode) {
         User user = userRepository.findById(userId)
@@ -62,36 +70,115 @@ public class SubscriptionService {
     }
 
     @Transactional
-    public SubscriptionKey generateKey(String durationType, boolean isActive) {
-        // Tạo mã key ngẫu nhiên (ví dụ: "ABC123-XYZ456")
+    public SubscriptionKey generateKey(String token, String durationType, boolean isActive) {
+
+        // Lấy userId từ token
+        String jwt = token.substring(7);
+        Long userId = jwtUtils.getUserIdFromToken(jwt);
+
+        // Tạo mã key ngẫu nhiên
         String keyCode = generateRandomKeyCode();
 
         // Xác định duration dựa trên loại
-        Duration duration = switch (durationType.toUpperCase()) {
-            case "1MONTH" -> Duration.ofDays(30);
-            case "3MONTHS" -> Duration.ofDays(90);
-            case "6MONTHS" -> Duration.ofDays(180);
-            case "1YEAR" -> Duration.ofDays(365);
-            default -> throw new IllegalArgumentException("Invalid duration type");
-        };
+        Duration duration;
+        String description;
+        String keyType = durationType.toUpperCase(); // Lưu trực tiếp string: "1MONTH", "3MONTHS",...
 
-        // Tạo description tự động
-        String description = "Gia hạn " + durationType.toLowerCase()
-                .replace("1month", "1 tháng")
-                .replace("3months", "3 tháng")
-                .replace("1year", "1 năm");
+        switch (keyType) {
+            case "1MONTH":
+                duration = Duration.ofDays(30);
+                description = "Gia hạn 1 tháng";
+                break;
+            case "3MONTHS":
+                duration = Duration.ofDays(90);
+                description = "Gia hạn 3 tháng";
+                break;
+            case "6MONTHS":
+                duration = Duration.ofDays(180);
+                description = "Gia hạn 6 tháng";
+                break;
+            case "1YEAR":
+                duration = Duration.ofDays(365);
+                description = "Gia hạn 1 năm";
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid duration type");
+        }
 
         // Tạo và lưu key
         SubscriptionKey key = SubscriptionKey.builder()
                 .code(keyCode)
                 .description(description)
                 .duration(duration)
+                .keyType(keyType) // Lưu string
                 .active(isActive)
                 .isUsed(false)
                 .createdAt(LocalDateTime.now())
+                .createdByUserId(userId)
                 .build();
 
         return keyRepository.save(key);
+    }
+    /**
+     * 1. Lấy danh sách SubscriptionKey do user hiện tại tạo (có paging, search và filter theo type)
+     */
+    public Page<SubscriptionKey> getMyKeys(
+            String token,
+            String search,
+            String keyType,
+            int page,
+            int size) {
+        String jwt = token.substring(7);
+        Long userId = jwtUtils.getUserIdFromToken(jwt);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        return keyRepository.findByCreatedByUserIdWithFilters(userId, search, keyType, pageable);
+    }
+
+    /**
+     * 2. Dashboard thống kê số key theo khoảng thời gian và phân loại
+     */
+    public Map<String, Object> getKeyStatistics(
+            String token,
+            LocalDateTime fromDate,
+            LocalDateTime toDate) {
+        String jwt = token.substring(7);
+        Long userId = jwtUtils.getUserIdFromToken(jwt);
+
+        // Mặc định lấy 30 ngày gần nhất nếu không có fromDate, toDate
+        if (fromDate == null) {
+            fromDate = LocalDateTime.now().minusDays(30);
+        }
+        if (toDate == null) {
+            toDate = LocalDateTime.now();
+        }
+
+        // Lấy thống kê từ repository
+        List<Object[]> results = keyRepository.countKeysByTypeAndDateRange(userId, fromDate, toDate);
+
+        // Map kết quả
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("1MONTH", 0L);
+        stats.put("3MONTHS", 0L);
+        stats.put("6MONTHS", 0L);
+        stats.put("1YEAR", 0L);
+
+        for (Object[] result : results) {
+            String keyType = (String) result[0];
+            Long count = (Long) result[1];
+            stats.put(keyType, count);
+        }
+
+        // Tổng số key
+        long totalKeys = stats.values().stream().mapToLong(Long::longValue).sum();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("fromDate", fromDate);
+        response.put("toDate", toDate);
+        response.put("totalKeys", totalKeys);
+        response.put("statistics", stats);
+
+        return response;
     }
 
     private String generateRandomKeyCode() {
