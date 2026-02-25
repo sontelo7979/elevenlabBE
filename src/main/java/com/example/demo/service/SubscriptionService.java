@@ -30,7 +30,11 @@ public class SubscriptionService {
     private final UserSubscriptionKeyRepository userKeyRepository;
     private final JwtUtils jwtUtils;
     @Transactional
-    public void applySubscriptionKey(Long userId, String keyCode) {
+    public void applySubscriptionKey(Long userId, String token, String keyCode) {
+        // Lấy collaboratorUserId từ token
+        String jwt = token.substring(7);
+        Long collaboratorUserId = jwtUtils.getUserIdFromToken(jwt);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -40,13 +44,13 @@ public class SubscriptionService {
         if (!key.isActive()) {
             throw new RuntimeException("Key is not active");
         }
-        if (!keyRepository.existsByCodeAndIsUsedFalse(keyCode)) {
-            throw new RuntimeException("Key has been used or does not exist");
+        if (key.isUsed()) {
+            throw new RuntimeException("Key has been used");
         }
+
         LocalDateTime currentEndDate = user.getEndDate() != null ?
                 user.getEndDate() : LocalDateTime.now();
 
-        // Nếu tài khoản đã hết hạn, tính từ thời điểm hiện tại
         if (currentEndDate.isBefore(LocalDateTime.now())) {
             currentEndDate = LocalDateTime.now();
         }
@@ -58,17 +62,16 @@ public class SubscriptionService {
         userKey.setUser(user);
         userKey.setSubscriptionKey(key);
         userKey.setNewEndDate(newEndDate);
+        userKey.setAppliedAt(LocalDateTime.now());
+        userKey.setCollaboratorUserId(collaboratorUserId); // Lưu collaboratorUserId
         userKeyRepository.save(userKey);
 
-        // Cập nhật ngày hết hạn mới cho user
         user.setEndDate(newEndDate);
         userRepository.save(user);
 
-        // Đánh dấu key đã sử dụng
         key.setUsed(true);
         keyRepository.save(key);
     }
-
     @Transactional
     public SubscriptionKey generateKey(String token, String durationType, boolean isActive) {
 

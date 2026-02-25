@@ -24,20 +24,21 @@ public class SubscriptionController {
     private final SubscriptionService subscriptionService;
     private final SubscriptionKeyRepository keyRepository;
     @PostMapping("/apply-key")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> applyKey(@RequestBody ApplyKeyRequest request) {
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_STAFF')")
+    public ResponseEntity<?> applyKey(@RequestBody ApplyKeyRequest request,
+                                      @RequestHeader("Authorization") String token) {
         try {
-            subscriptionService.applySubscriptionKey(request.getUserId(), request.getKeyCode());
+            subscriptionService.applySubscriptionKey(request.getUserId(), token, request.getKeyCode());
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Key applied successfully",
-                    "keyStatus", "USED" // Trả về trạng thái key
+                    "keyStatus", "USED"
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", e.getMessage(),
-                    "keyStatus", "INVALID" // Trả về trạng thái key
+                    "keyStatus", "INVALID"
             ));
         }
     }
