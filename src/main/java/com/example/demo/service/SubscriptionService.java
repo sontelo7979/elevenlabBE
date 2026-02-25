@@ -164,6 +164,8 @@ public class SubscriptionService {
         Collaborator collaborator = collaboratorRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Collaborator not found for user: " + userId));
         Long collaboratorId = collaborator.getId();
+        Double commissionRate = collaborator.getCommissionRate();
+
 
         // Lấy thống kê keys từ repository
         List<Object[]> results = keyRepository.countKeysByTypeAndDateRange(userId, fromDate, toDate);
@@ -192,6 +194,7 @@ public class SubscriptionService {
         response.put("toDate", toDate);
         response.put("totalKeys", totalKeys);
         response.put("totalUsers", totalUsers);
+        response.put("commissionRate", commissionRate); // Thêm commission rate
         response.put("statistics", stats);
 
         return response;
