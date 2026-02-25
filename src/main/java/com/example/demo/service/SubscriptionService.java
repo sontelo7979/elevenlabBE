@@ -1,8 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.model.Collaborator;
 import com.example.demo.model.SubscriptionKey;
 import com.example.demo.model.User;
 import com.example.demo.model.UserSubscriptionKey;
+import com.example.demo.repository.CollaboratorRepository;
 import com.example.demo.repository.SubscriptionKeyRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.UserSubscriptionKeyRepository;
@@ -28,6 +30,8 @@ public class SubscriptionService {
     private final UserRepository userRepository;
     private final SubscriptionKeyRepository keyRepository;
     private final UserSubscriptionKeyRepository userKeyRepository;
+    private final CollaboratorRepository collaboratorRepository;
+
     private final JwtUtils jwtUtils;
     @Transactional
     public void applySubscriptionKey(Long userId, String token, String keyCode) {
@@ -156,10 +160,15 @@ public class SubscriptionService {
             toDate = LocalDateTime.now();
         }
 
-        // Lấy thống kê từ repository
+        // Tìm collaborator ID từ user ID
+        Collaborator collaborator = collaboratorRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Collaborator not found for user: " + userId));
+        Long collaboratorId = collaborator.getId();
+
+        // Lấy thống kê keys từ repository
         List<Object[]> results = keyRepository.countKeysByTypeAndDateRange(userId, fromDate, toDate);
 
-        // Map kết quả
+        // Map kết quả keys
         Map<String, Long> stats = new HashMap<>();
         stats.put("1MONTH", 0L);
         stats.put("3MONTHS", 0L);
@@ -175,10 +184,14 @@ public class SubscriptionService {
         // Tổng số key
         long totalKeys = stats.values().stream().mapToLong(Long::longValue).sum();
 
+        // Đếm số users được đăng ký bởi collaborator này
+        long totalUsers = userRepository.countByRegisteredByCollaboratorId(collaboratorId);
+
         Map<String, Object> response = new HashMap<>();
         response.put("fromDate", fromDate);
         response.put("toDate", toDate);
         response.put("totalKeys", totalKeys);
+        response.put("totalUsers", totalUsers);
         response.put("statistics", stats);
 
         return response;

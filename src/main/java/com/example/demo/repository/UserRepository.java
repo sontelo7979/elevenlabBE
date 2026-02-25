@@ -48,4 +48,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("search") String search,
             @Param("isActive") Boolean isActive,
             Pageable pageable);
+
+    long countByRegisteredByCollaboratorId(Long collaboratorId);
 }
