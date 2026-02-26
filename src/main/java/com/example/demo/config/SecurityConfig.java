@@ -82,7 +82,8 @@ public class SecurityConfig {
 
         // Cho phép cả domain production và localhost
         configuration.setAllowedOrigins(List.of(
-                "https://api.yt-bintube.com",
+                "https://www.bintoday.click",  // ✅ Thêm domain production
+                "https://bintoday.click",      // ✅ Thêm domain không có www
                 "http://localhost:3000",
                 "http://localhost:3001",
                 "http://127.0.0.1:3000"
