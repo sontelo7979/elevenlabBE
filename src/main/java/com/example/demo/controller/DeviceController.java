@@ -18,14 +18,13 @@ public class DeviceController {
     }
 
     // API để admin thay đổi thiết bị đăng ký
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     @PostMapping("/change")
     public ResponseEntity<ApiResponse<String>> changeDevice(
             @RequestParam Long userId,
-            @RequestParam String newDeviceId,
-            @RequestParam String adminCode) {
+            @RequestParam String newDeviceId) {
         try {
-            boolean success = deviceRegistrationService.changeRegisteredDevice(userId, newDeviceId, adminCode);
+            boolean success = deviceRegistrationService.changeRegisteredDevice(userId, newDeviceId);
             if (success) {
                 ApiResponse<String> response = new ApiResponse<>(
                         HttpStatus.OK.value(),
@@ -47,6 +46,7 @@ public class DeviceController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
 
     // API để lấy thông tin thiết bị đã đăng ký
     @PreAuthorize("hasRole('ADMIN')")

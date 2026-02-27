@@ -46,12 +46,18 @@ public class DeviceRegistrationService {
         return deviceId.equals(user.getRegisteredDeviceId());
     }
 
-    public boolean changeRegisteredDevice(Long userId, String newDeviceId, String adminCode) {
-        // Implement logic để admin có thể thay đổi thiết bị đăng ký
-        // Kiểm tra admin code hoặc role của user request
+    public boolean changeRegisteredDevice(Long userId, String newDeviceId) {
+        // Kiểm tra user có tồn tại không
         Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
-            return false;
+            throw new RuntimeException("Không tìm thấy người dùng với ID: " + userId);
+        }
+
+        User user = userOpt.get();
+
+        // Kiểm tra nếu deviceId mới giống với device cũ
+        if (newDeviceId.equals(user.getRegisteredDeviceId())) {
+            throw new RuntimeException("Thiết bị mới trùng với thiết bị hiện tại");
         }
 
         // Kiểm tra nếu deviceId đã được đăng ký cho user khác
@@ -59,7 +65,7 @@ public class DeviceRegistrationService {
             throw new RuntimeException("Thiết bị này đã được đăng ký cho tài khoản khác");
         }
 
-        User user = userOpt.get();
+        // Cập nhật thông tin thiết bị mới
         user.setRegisteredDeviceId(newDeviceId);
         user.setDeviceRegisteredAt(LocalDateTime.now());
         userRepository.save(user);
