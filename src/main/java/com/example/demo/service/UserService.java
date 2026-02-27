@@ -135,6 +135,8 @@ public class UserService {
                 .endDate(user.getEndDate())
                 .isActive(user.getIsActive())
                 .isAccountValid(user.isAccountValid())
+                .registeredDeviceId(user.getRegisteredDeviceId())
+                .deviceRegisteredAt(user.getDeviceRegisteredAt())
                 .build();
     }
 }
