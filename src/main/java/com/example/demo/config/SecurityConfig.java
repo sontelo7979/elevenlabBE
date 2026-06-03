@@ -31,7 +31,9 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/actuator/health",
-            "/updates/**"
+            "/updates/**",
+            "/api/payments/**",
+            "/api/customers/**"
     };
 
     private final UserDetailsServiceImpl userDetailsService;
@@ -81,12 +83,13 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Cho phép cả domain production và localhost
-        configuration.setAllowedOrigins(List.of(
+        configuration.setAllowedOriginPatterns(List.of(
                 "https://www.bintoday.click",  // ✅ Thêm domain production
                 "https://bintoday.click",      // ✅ Thêm domain không có www
                 "http://localhost:3000",
                 "http://localhost:3001",
-                "http://127.0.0.1:3000"
+                "http://127.0.0.1:3000",
+                "chrome-extension://*"
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
