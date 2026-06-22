@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.model.EPermission;
 import com.example.demo.model.UserPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,12 +17,12 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
 
     @Query("SELECT up FROM UserPermission up WHERE up.user.id = :userId AND up.permission.name = :permissionName")
     Optional<UserPermission> findByUserIdAndPermissionName(@Param("userId") Long userId,
-                                                           @Param("permissionName") String permissionName);
+                                                           @Param("permissionName") EPermission permissionName);
 
     @Query("SELECT CASE WHEN COUNT(up) > 0 THEN true ELSE false END " +
             "FROM UserPermission up WHERE up.user.id = :userId AND up.permission.name = :permissionName AND up.granted = true")
     boolean existsByUserIdAndPermissionNameAndGrantedTrue(@Param("userId") Long userId,
-                                                          @Param("permissionName") String permissionName);
+                                                          @Param("permissionName") EPermission permissionName);
 
     @Query("SELECT up FROM UserPermission up WHERE up.user.id = :userId AND up.granted = true " +
             "AND (up.expiresAt IS NULL OR up.expiresAt > CURRENT_TIMESTAMP)")

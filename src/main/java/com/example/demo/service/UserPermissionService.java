@@ -40,8 +40,9 @@ public class UserPermissionService {
                 .orElseThrow(() -> new RuntimeException("Permission not found: " + permissionName));
 
         // Kiểm tra xem user đã có permission này chưa
+        // Truyền enum trực tiếp (không .name()) vì property "permission.name" trên entity là kiểu EPermission
         Optional<UserPermission> existingPermission = userPermissionRepository
-                .findByUserIdAndPermissionName(userId, permissionName.name());
+                .findByUserIdAndPermissionName(userId, permissionName);
 
         if (existingPermission.isPresent()) {
             UserPermission userPermission = existingPermission.get();
@@ -75,14 +76,14 @@ public class UserPermissionService {
     // Xóa permission của user
     @Transactional
     public void removePermission(Long userId, EPermission permissionName) {
-        userPermissionRepository.findByUserIdAndPermissionName(userId, permissionName.name())
+        userPermissionRepository.findByUserIdAndPermissionName(userId, permissionName)
                 .ifPresent(userPermissionRepository::delete);
     }
 
     // Vô hiệu hóa permission (thay vì xóa)
     @Transactional
     public void disablePermission(Long userId, EPermission permissionName) {
-        userPermissionRepository.findByUserIdAndPermissionName(userId, permissionName.name())
+        userPermissionRepository.findByUserIdAndPermissionName(userId, permissionName)
                 .ifPresent(userPermission -> {
                     userPermission.setGranted(false);
                     userPermissionRepository.save(userPermission);
@@ -92,7 +93,7 @@ public class UserPermissionService {
     // Kiểm tra user có permission không
     public boolean hasPermission(Long userId, EPermission permissionName) {
         return userPermissionRepository.existsByUserIdAndPermissionNameAndGrantedTrue(
-                userId, permissionName.name());
+                userId, permissionName);
     }
 
 

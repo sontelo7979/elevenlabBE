@@ -33,7 +33,8 @@ public class SecurityConfig {
             "/actuator/health",
             "/updates/**",
             "/api/payments/**",
-            "/api/customers/**"
+            "/api/customers/**",
+            "/error"
     };
 
     private final UserDetailsServiceImpl userDetailsService;
