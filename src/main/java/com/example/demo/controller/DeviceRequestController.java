@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.dto.AdminDeviceUpdateRequest;
 import com.example.demo.dto.DeviceRequestDTO;
 import com.example.demo.dto.DeviceStatusResponse;
+import com.example.demo.model.DeviceRequest;
 import com.example.demo.service.DeviceRequestService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -98,5 +100,23 @@ public class DeviceRequestController {
         }
 
         return ResponseEntity.ok(Map.of("success", true, "message", result.getMessage()));
+    }
+
+    /**
+     * API 4 – Admin lấy danh sách device requests
+     * GET /api/v1/admin/device/requests?status=pending&page=0&size=20
+     * - status: "pending" | "approved" | "rejected" | null (lấy tất cả)
+     * - Có phân trang
+     * Yêu cầu xác thực: chỉ ADMIN
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/device/requests")
+    public ResponseEntity<Page<DeviceRequest>> getDeviceRequests(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        Page<DeviceRequest> result = deviceRequestService.getDeviceRequests(status, page, size);
+        return ResponseEntity.ok(result);
     }
 }

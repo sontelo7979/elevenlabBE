@@ -3,6 +3,9 @@ package com.example.demo.service;
 import com.example.demo.dto.DeviceStatusResponse;
 import com.example.demo.model.DeviceRequest;
 import com.example.demo.repository.DeviceRequestRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -87,5 +90,20 @@ public class DeviceRequestService {
 
         deviceRequestRepository.save(device);
         return new DeviceStatusResponse(device.getStatus(), "Cập nhật thành công");
+    }
+
+    /**
+     * API 4: Admin lấy danh sách device requests
+     * - Nếu status = null → lấy tất cả
+     * - Nếu status = "pending" / "approved" / "rejected" → lọc theo status
+     */
+    public Page<DeviceRequest> getDeviceRequests(String status, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        if (status != null && !status.isBlank()) {
+            return deviceRequestRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
+        }
+
+        return deviceRequestRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 }
