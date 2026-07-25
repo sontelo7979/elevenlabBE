@@ -34,6 +34,8 @@ public class SecurityConfig {
             "/updates/**",
             "/api/payments/**",
             "/api/customers/**",
+            "/api/v1/device/request",
+            "/api/v1/device/status",
             "/error"
     };
 
