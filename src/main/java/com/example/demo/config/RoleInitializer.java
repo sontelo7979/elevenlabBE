@@ -4,11 +4,13 @@ import com.example.demo.model.ERole;
 import com.example.demo.model.Role;
 import com.example.demo.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
 @Component
+@Order(1)
 public class RoleInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
