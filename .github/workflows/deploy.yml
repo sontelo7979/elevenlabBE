@@ -116,16 +116,15 @@ jobs:
             cd /home/telo
             echo "Starting application..."
             nohup java -jar demo-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
-            
-            # Hoặc nếu dùng systemd:
-            # sudo systemctl start my-spring-app
-            
+
             echo "Verifying application..."
             sleep 25
             if ss -tuln | grep :8082; then
               echo "Application started successfully on port 8082"
             else
               echo "Application failed to start"
+              echo "=== LAST 80 LINES OF LOG ==="
+              tail -80 app.log
               exit 1
             fi
             echo "Deployment completed"
