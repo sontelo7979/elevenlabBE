@@ -36,4 +36,24 @@ public interface SubscriptionKeyRepository extends JpaRepository<SubscriptionKey
             @Param("userId") Long userId,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate);
+
+    // 3. Đếm key ĐÃ SỬ DỤNG theo loại, trong khoảng thời gian (toàn hệ thống, không phân theo user)
+    @Query("SELECT k.keyType as keyType, COUNT(k) as count " +
+            "FROM SubscriptionKey k " +
+            "WHERE k.isUsed = true " +
+            "AND k.createdAt BETWEEN :fromDate AND :toDate " +
+            "GROUP BY k.keyType")
+    List<Object[]> countUsedKeysByTypeAndDateRange(
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate);
+
+    // 4. Đếm key ĐÃ SỬ DỤNG theo loại, theo đúng 1 ngày (toàn hệ thống)
+    @Query("SELECT k.keyType as keyType, COUNT(k) as count " +
+            "FROM SubscriptionKey k " +
+            "WHERE k.isUsed = true " +
+            "AND k.createdAt >= :startOfDay AND k.createdAt < :endOfDay " +
+            "GROUP BY k.keyType")
+    List<Object[]> countUsedKeysByTypeForDay(
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay);
 }
